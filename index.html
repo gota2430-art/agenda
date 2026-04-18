@@ -25,13 +25,13 @@ select option{background:#1E1E1E}
 </head>
 <body>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></scr${'ipt>'}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></scr${'ipt>'}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></scr${'ipt>'}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <script>
 window.storage={get:async k=>{const v=localStorage.getItem(k);return v!==null?{value:v}:null},set:async(k,v)=>{localStorage.setItem(k,String(v));return{key:k,value:v}}};
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</scr${'ipt>'}
+</script>
 <script type="text/babel">
 const{useState,useEffect,useCallback,useRef}=React;
 const BG="#0C0C0C",S0="#161616",S1="#1E1E1E",S2="#272727",BD="rgba(255,255,255,0.07)",BD2="rgba(255,255,255,0.13)",TX="#F0F0F0",MU="#606060",AC="#8479F0",R="18px",RM="12px",RS="8px";
@@ -53,6 +53,7 @@ function Toggle({on,onChange}){return(<button onClick={onChange} style={{width:4
 function DayPicker({days,onChange}){return(<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{DAY_NAMES.map((d,i)=><button key={i} onClick={()=>onChange(days.includes(i)?days.filter(x=>x!==i):[...days,i].sort())} style={{padding:"4px 9px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"1px solid "+(days.includes(i)?AC:BD),background:days.includes(i)?AC:"transparent",color:days.includes(i)?TX:MU}}>{d}</button>)}</div>);}
 function ColorPicker({value,onChange}){return(<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{PALETTE.map(col=><div key={col} onClick={()=>onChange(col)} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:value===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>);}
 const Pill=({text,color})=><span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:color+"22",color,fontWeight:500}}>{text}</span>;
+
 
 function App(){
 const[tasks,setTasks]=useState([]);
@@ -93,196 +94,3 @@ const addRecur=()=>{if(!recurForm.text.trim())return;const nr=[...recurring,{id:
 const saveEditRecur=()=>{if(!editRecurForm?.text?.trim())return;const nr=recurring.map(r=>r.id===editRecurId?{...r,...editRecurForm}:r);const nt=tasks.map(t=>t.recurId===editRecurId?{...t,...editRecurForm,id:t.id,date:t.date,done:t.done,recurId:t.recurId}:t);commit(nt,nr);setEditRecurId(null);setEditRecurForm(null);};
 const deleteRecur=()=>{commit(tasks.filter(t=>t.recurId!==editRecurId),recurring.filter(r=>r.id!==editRecurId));setEditRecurId(null);setEditRecurForm(null);};
 const addCat=()=>{if(!catForm.name.trim())return;const nc=[...categories,{id:"c"+Date.now(),name:catForm.name.trim(),color:catForm.color}];commit(tasks,recurring,nc);setCatForm({name:"",color:PALETTE[0]});setShowNewCat(false);};
-const saveEditCat=()=>{const old=categories.find(c=>c.id===editCatId);const nc=categories.map(c=>c.id===editCatId?{...c,...editCatForm}:c);commit(tasks.map(t=>t.cat===old.name?{...t,cat:editCatForm.name}:t),recurring.map(r=>r.cat===old.name?{...r,cat:editCatForm.name}:r),nc);setEditCatId(null);setEditCatForm(null);};
-const deleteCat=()=>{commit(tasks,recurring,categories.filter(c=>c.id!==editCatId));setEditCatId(null);setEditCatForm(null);};
-const saveProfile=np=>{setProfile(np);saveAll(tasks,recurring,categories,np,history,pending);scheduleNotifs(recurring,np);};
-const togglePend=id=>{const np=pending.map(p=>p.id===id?{...p,done:!p.done}:p);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
-const dismissPend=id=>{const np=pending.filter(p=>p.id!==id);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
-const requestNotif=async()=>{if(typeof Notification==="undefined")return;const p=await Notification.requestPermission();setNotifStatus(p);if(p==="granted")scheduleNotifs(recurring,profile);};
-const nowStr=now.toTimeString().slice(0,5);
-const isNow=t=>{if(!t.timeStart)return false;const end=t.timeEnd||t.timeStart.slice(0,2)+":"+String(parseInt(t.timeStart.slice(3))+30).padStart(2,"0");return nowStr>=t.timeStart&&nowStr<=end;};
-const todayTasks=tasks.filter(t=>t.date===TODAY()).sort((a,b)=>{if(a.timeStart&&b.timeStart)return a.timeStart.localeCompare(b.timeStart);if(a.timeStart)return -1;if(b.timeStart)return 1;if(a.prio==="alta"&&b.prio!=="alta")return -1;if(b.prio==="alta"&&a.prio!=="alta")return 1;return 0;});
-const done=todayTasks.filter(t=>t.done).length,total=todayTasks.length,pct=total>0?Math.round(done/total*100):0;
-const pendCount=pending.filter(p=>!p.done).length,streak=getStreak(history),last7=getLast7(history);
-if(!loaded)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:MU}}>A carregar...</div>;
-const TABS=[{id:"hoje",label:"Hoje"},{id:"pendentes",label:pendCount>0?"Pendentes ("+pendCount+")":"Pendentes"},{id:"recorrentes",label:"Recorrentes"},{id:"progresso",label:"Progresso"},{id:"definicoes",label:"Definicoes"}];
-return(
-<div style={{minHeight:"100vh",background:BG,color:TX}}>
-<div style={{maxWidth:520,margin:"0 auto",padding:"1.5rem 1rem 4rem"}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"1.5rem"}}>
-  <div><h2 style={{margin:0,fontSize:22,fontWeight:700,letterSpacing:"-0.04em"}}>{profile.name?"Ola, "+profile.name.split(" ")[0]:"A minha agenda"}</h2><div style={{fontSize:13,color:MU,marginTop:3}}>{now.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"})}</div></div>
-  <div style={{background:S1,borderRadius:RM,padding:"6px 14px",fontSize:15,fontWeight:600,border:"1px solid "+BD}}>{nowStr}</div>
-</div>
-{notifStatus==="default"&&<div style={{marginBottom:"1rem",padding:"10px 16px",background:"rgba(132,121,240,0.1)",border:"1px solid rgba(132,121,240,0.2)",borderRadius:RM,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}><span style={{fontSize:13}}>Ativar notificacoes</span><button onClick={requestNotif} style={{padding:"4px 12px",fontSize:12,cursor:"pointer",borderRadius:RS,border:"1px solid "+AC,background:"transparent",color:AC}}>Ativar</button></div>}
-<div style={{display:"flex",gap:2,marginBottom:"1.5rem",background:S0,borderRadius:R,padding:4,border:"1px solid "+BD,overflowX:"auto"}}>
-  {TABS.map(tab=><button key={tab.id} onClick={()=>setView(tab.id)} style={{flex:"0 0 auto",padding:"7px 12px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"none",background:view===tab.id?S2:"transparent",color:view===tab.id?TX:MU,fontWeight:view===tab.id?500:400,whiteSpace:"nowrap"}}>{tab.label}</button>)}
-</div>
-{view==="hoje"&&<>
-  {!showNewTask
-    ?<button onClick={()=>setShowNewTask(true)} style={{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"12px 16px",background:S0,border:"1px dashed "+BD2,borderRadius:R,cursor:"pointer",marginBottom:"1rem",color:MU,fontSize:14}}>
-       <span style={{width:26,height:26,borderRadius:"50%",background:AC,display:"flex",alignItems:"center",justifyContent:"center",color:TX,fontSize:18,lineHeight:1,flexShrink:0}}>+</span>Adicionar tarefa
-     </button>
-    :<div style={{...cardS,marginBottom:"1rem",borderLeft:"3px solid "+AC}}>
-       <input value={taskForm.text} onChange={e=>setTaskForm({...taskForm,text:e.target.value})} onKeyDown={e=>e.key==="Enter"&&addTask()} placeholder="Nome da tarefa..." style={{...inp,marginBottom:8}} autoFocus/>
-       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-         <select value={taskForm.cat} onChange={e=>setTaskForm({...taskForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
-         <select value={taskForm.prio} onChange={e=>setTaskForm({...taskForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
-       </div>
-       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-         <input type="time" value={taskForm.timeStart||""} onChange={e=>setTaskForm({...taskForm,timeStart:e.target.value})} style={inp} placeholder="Inicio"/>
-         <input type="time" value={taskForm.timeEnd||""} onChange={e=>setTaskForm({...taskForm,timeEnd:e.target.value})} style={inp} placeholder="Fim"/>
-       </div>
-       <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewTask(false)} style={Btn()}>Cancelar</button><button onClick={addTask} style={Btn(true)}>Guardar</button></div>
-     </div>}
-  {total>0&&<div style={{marginBottom:"1rem"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:MU,marginBottom:6}}><span>{done} de {total} concluidas</span><span style={{color:TX,fontWeight:600}}>{pct}%</span></div><div style={{height:3,background:S2,borderRadius:99}}><div style={{height:3,width:pct+"%",background:AC,borderRadius:99,transition:"width .4s"}}/></div></div>}
-  {todayTasks.length===0&&!showNewTask&&<div style={{textAlign:"center",padding:"3rem 0",color:MU}}>Sem tarefas para hoje.</div>}
-  <div style={{display:"flex",flexDirection:"column",gap:6}}>
-    {todayTasks.map(t=>{const cc=catColor(categories,t.cat),active=isNow(t);
-      if(editTaskId===t.id)return(
-        <div key={t.id} style={{...cardS,borderLeft:"3px solid "+cc}}>
-          <input value={editTaskForm.text} onChange={e=>setEditTaskForm({...editTaskForm,text:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-            <select value={editTaskForm.cat} onChange={e=>setEditTaskForm({...editTaskForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
-            <select value={editTaskForm.prio} onChange={e=>setEditTaskForm({...editTaskForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <input type="time" value={editTaskForm.timeStart||""} onChange={e=>setEditTaskForm({...editTaskForm,timeStart:e.target.value})} style={inp}/>
-            <input type="time" value={editTaskForm.timeEnd||""} onChange={e=>setEditTaskForm({...editTaskForm,timeEnd:e.target.value})} style={inp}/>
-          </div>
-          <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditTaskId(null);setEditTaskForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditTask} style={Btn(true)}>Guardar</button><button onClick={deleteTask} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
-        </div>);
-      return(<div key={t.id} onClick={()=>{setEditTaskId(t.id);setEditTaskForm({text:t.text,cat:t.cat,prio:t.prio,timeStart:t.timeStart||"",timeEnd:t.timeEnd||"",date:t.date});}} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:active?cc+"12":S0,border:"1px solid "+(active?cc+"30":BD),borderLeft:"3px solid "+cc,borderRadius:R,opacity:t.done?0.4:1}}>
-        <input type="checkbox" checked={t.done} onChange={e=>{e.stopPropagation();toggleTask(t.id);}} style={{width:17,height:17,cursor:"pointer",accentColor:cc,flexShrink:0}}/>
-        <div style={{flex:1,minWidth:0}}><div style={{fontSize:14,textDecoration:t.done?"line-through":"none"}}>{t.text}</div>{t.timeStart&&<div style={{fontSize:11,color:MU,marginTop:2}}>{t.timeStart}{t.timeEnd?" - "+t.timeEnd:""}{active&&<span style={{color:cc,marginLeft:6}}>agora</span>}</div>}</div>
-        <Pill text={t.cat} color={cc}/>{t.prio==="alta"&&<span style={{fontSize:11,color:"#FB923C"}}>up</span>}
-      </div>);
-    })}
-  </div>
-</>}
-{view==="pendentes"&&<>
-  <div style={{fontSize:13,color:MU,marginBottom:"1rem"}}>Tarefas nao realizadas que precisam de atencao.</div>
-  {pendCount===0&&<div style={{textAlign:"center",padding:"3rem 0",color:MU}}>Sem pendentes. Bom trabalho!</div>}
-  <div style={{display:"flex",flexDirection:"column",gap:6}}>
-    {pending.filter(p=>!p.done).map(p=><div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"rgba(251,146,60,0.06)",border:"1px solid rgba(251,146,60,0.18)",borderLeft:"3px solid #FB923C",borderRadius:R}}>
-      <input type="checkbox" checked={false} onChange={()=>togglePend(p.id)} style={{width:17,height:17,cursor:"pointer",accentColor:"#FB923C",flexShrink:0}}/>
-      <div style={{flex:1}}><div style={{fontSize:14}}>{p.text}</div><div style={{fontSize:11,color:MU,marginTop:2}}>Nao realizado a {new Date(p.pendingFrom+"T12:00:00").toLocaleDateString("pt-PT",{weekday:"short",day:"numeric",month:"short"})}</div></div>
-      <button onClick={()=>dismissPend(p.id)} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:MU}}>Ignorar</button>
-    </div>)}
-  </div>
-</>}
-{view==="recorrentes"&&<>
-  <div style={{fontSize:13,color:MU,marginBottom:"1rem"}}>Toca para editar.</div>
-  <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1rem"}}>
-    {recurring.map(r=>{const cc=catColor(categories,r.cat);
-      if(editRecurId===r.id)return(
-        <div key={r.id} style={{...cardS,borderLeft:"3px solid "+cc}}>
-          <input value={editRecurForm.text} onChange={e=>setEditRecurForm({...editRecurForm,text:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-            <select value={editRecurForm.cat} onChange={e=>setEditRecurForm({...editRecurForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
-            <select value={editRecurForm.prio} onChange={e=>setEditRecurForm({...editRecurForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-            <input type="time" value={editRecurForm.timeStart||""} onChange={e=>setEditRecurForm({...editRecurForm,timeStart:e.target.value})} style={inp}/>
-            <input type="time" value={editRecurForm.timeEnd||""} onChange={e=>setEditRecurForm({...editRecurForm,timeEnd:e.target.value})} style={inp}/>
-          </div>
-          <div style={{marginBottom:8,fontSize:11,color:MU}}>Dias da semana</div>
-          <div style={{marginBottom:8}}><DayPicker days={editRecurForm.days} onChange={d=>setEditRecurForm({...editRecurForm,days:d})}/></div>
-          <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:MU,marginBottom:12,cursor:"pointer"}}><input type="checkbox" checked={editRecurForm.goesToPending} onChange={e=>setEditRecurForm({...editRecurForm,goesToPending:e.target.checked})} style={{width:14,height:14,accentColor:AC}}/> Se nao feita, vai para Pendentes</label>
-          <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditRecurId(null);setEditRecurForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditRecur} style={Btn(true)}>Guardar</button><button onClick={deleteRecur} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
-        </div>);
-      return(<div key={r.id} onClick={()=>{setEditRecurId(r.id);setEditRecurForm({text:r.text,cat:r.cat,prio:r.prio,timeStart:r.timeStart,timeEnd:r.timeEnd||"",days:r.days,goesToPending:r.goesToPending});}} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",background:S0,border:"1px solid "+BD,borderLeft:"3px solid "+cc,borderRadius:R,cursor:"pointer"}}>
-        <div style={{flex:1}}><div style={{fontSize:14,fontWeight:500}}>{r.text}</div><div style={{fontSize:11,color:MU,marginTop:2}}>{r.timeStart}{r.timeEnd?" - "+r.timeEnd:""} . {r.days.length===7?"todos os dias":r.days.map(d=>DAY_NAMES[d]).join(", ")}</div></div>
-        <Pill text={r.cat} color={cc}/><span style={{fontSize:12,color:MU}}>edit</span>
-      </div>);
-    })}
-  </div>
-  {!showNewRecur
-    ?<button onClick={()=>setShowNewRecur(true)} style={{width:"100%",padding:"12px",fontSize:14,cursor:"pointer",borderRadius:R,border:"1px dashed "+BD2,background:"transparent",color:MU}}>+ Nova tarefa recorrente</button>
-    :<div style={cardS}>
-       <input value={recurForm.text} onChange={e=>setRecurForm({...recurForm,text:e.target.value})} placeholder="Nome..." style={{...inp,marginBottom:8}} autoFocus/>
-       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-         <select value={recurForm.cat} onChange={e=>setRecurForm({...recurForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
-         <select value={recurForm.prio} onChange={e=>setRecurForm({...recurForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
-       </div>
-       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-         <input type="time" value={recurForm.timeStart} onChange={e=>setRecurForm({...recurForm,timeStart:e.target.value})} style={inp}/>
-         <input type="time" value={recurForm.timeEnd} onChange={e=>setRecurForm({...recurForm,timeEnd:e.target.value})} style={inp}/>
-       </div>
-       <div style={{marginBottom:8}}><DayPicker days={recurForm.days} onChange={d=>setRecurForm({...recurForm,days:d})}/></div>
-       <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:MU,marginBottom:12,cursor:"pointer"}}><input type="checkbox" checked={recurForm.goesToPending} onChange={e=>setRecurForm({...recurForm,goesToPending:e.target.checked})} style={{width:14,height:14,accentColor:AC}}/> Se nao feita, vai para Pendentes</label>
-       <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewRecur(false)} style={Btn()}>Cancelar</button><button onClick={addRecur} style={Btn(true)}>Guardar</button></div>
-     </div>}
-</>}
-{view==="progresso"&&<>
-  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:"1.25rem"}}>
-    {[{l:"Hoje",v:pct+"%",c:AC},{l:"Streak",v:streak+"d",c:"#FB923C"},{l:"Semana",v:Math.round(last7.reduce((a,d)=>a+d.pct,0)/7)+"%",c:"#34D399"}].map(s=>(
-      <div key={s.l} style={{background:S0,border:"1px solid "+BD,borderRadius:R,padding:"14px 12px",textAlign:"center"}}>
-        <div style={{fontSize:11,color:MU,marginBottom:6}}>{s.l}</div>
-        <div style={{fontSize:26,fontWeight:700,color:s.c,letterSpacing:"-0.04em"}}>{s.v}</div>
-      </div>
-    ))}
-  </div>
-  <div style={{...cardS,marginBottom:"1rem"}}>
-    <div style={{fontSize:13,color:MU,marginBottom:"1.25rem"}}>Ultimos 7 dias</div>
-    <div style={{display:"flex",gap:8,alignItems:"flex-end",height:100}}>
-      {last7.map(d=>(
-        <div key={d.k} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-          <span style={{fontSize:9,color:MU}}>{d.pct>0?d.pct+"%":""}</span>
-          <div style={{width:"100%",height:68,display:"flex",alignItems:"flex-end"}}>
-            <div style={{width:"100%",height:Math.max(d.pct,4)+"%",background:d.isToday?AC:d.pct>=50?AC+"55":S2,borderRadius:"6px 6px 0 0",transition:"height .3s"}}/>
-          </div>
-          <span style={{fontSize:10,fontWeight:d.isToday?700:400,color:d.isToday?TX:MU}}>{d.label}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-  {streak>0&&<div style={{padding:"12px 16px",background:S0,border:"1px solid "+BD,borderRadius:R,fontSize:13,color:MU,textAlign:"center"}}>Sequencia de <span style={{color:"#FB923C",fontWeight:700}}>{streak} {streak===1?"dia":"dias"}</span>. Continua assim!</div>}
-</>}
-{view==="definicoes"&&<>
-  <div style={{...cardS,marginBottom:"1rem"}}>
-    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Perfil</div>
-    <div style={{fontSize:11,color:MU,marginBottom:4}}>O teu nome</div>
-    <input value={profile.name} onChange={e=>saveProfile({...profile,name:e.target.value})} placeholder="Como te chamas?" style={inp}/>
-  </div>
-  <div style={{...cardS,marginBottom:"1rem"}}>
-    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Notificacoes</div>
-    {notifStatus==="denied"&&<div style={{fontSize:12,color:"#FB923C",marginBottom:10}}>Bloqueadas. Ativa nas definicoes do browser.</div>}
-    {notifStatus==="default"&&<button onClick={requestNotif} style={{...Btn(true),marginBottom:12,display:"block"}}>Ativar notificacoes</button>}
-    {[{key:"notifWater",label:"Lembretes de agua (de 2 em 2h)"},{key:"notifMeals",label:"Refeicoes (lanche e almoco)"},{key:"notifSkincare",label:"Skin-care (manha e noite)"}].map(({key,label},i,arr)=>(
-      <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:i<arr.length-1?"1px solid "+BD:"none"}}>
-        <span style={{fontSize:14}}>{label}</span>
-        <Toggle on={profile[key]} onChange={()=>saveProfile({...profile,[key]:!profile[key]})}/>
-      </div>
-    ))}
-  </div>
-  <div style={cardS}>
-    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Categorias</div>
-    <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"0.75rem"}}>
-      {categories.map(c=>{
-        if(editCatId===c.id)return(
-          <div key={c.id} style={{padding:"12px",background:S1,borderRadius:RM,border:"1px solid "+BD}}>
-            <input value={editCatForm.name} onChange={e=>setEditCatForm({...editCatForm,name:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{PALETTE.map(col=><div key={col} onClick={()=>setEditCatForm({...editCatForm,color:col})} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:editCatForm.color===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>
-            <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditCatId(null);setEditCatForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditCat} style={Btn(true)}>Guardar</button><button onClick={deleteCat} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
-          </div>);
-        return(<div key={c.id} onClick={()=>{setEditCatId(c.id);setEditCatForm({name:c.name,color:c.color});}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:S1,borderRadius:RM,cursor:"pointer",border:"1px solid "+BD}}>
-          <div style={{width:14,height:14,borderRadius:"50%",background:c.color,flexShrink:0}}/><span style={{flex:1,fontSize:14}}>{c.name}</span><Pill text={c.name} color={c.color}/><span style={{fontSize:12,color:MU}}>edit</span>
-        </div>);
-      })}
-    </div>
-    {!showNewCat
-      ?<button onClick={()=>setShowNewCat(true)} style={{width:"100%",padding:"10px",fontSize:13,cursor:"pointer",borderRadius:RM,border:"1px dashed "+BD2,background:"transparent",color:MU}}>+ Nova categoria</button>
-      :<div style={{paddingTop:12,borderTop:"1px solid "+BD}}>
-         <input value={catForm.name} onChange={e=>setCatForm({...catForm,name:e.target.value})} placeholder="Nome da categoria" style={{...inp,marginBottom:8}} autoFocus/>
-         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{PALETTE.map(col=><div key={col} onClick={()=>setCatForm({...catForm,color:col})} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:catForm.color===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>
-         <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewCat(false)} style={Btn()}>Cancelar</button><button onClick={addCat} style={Btn(true)}>Guardar</button></div>
-       </div>}
-  </div>
-</>}
-</div>
-</div>);
-}
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
-</scr${'ipt>'}
-</body>
-</html>
