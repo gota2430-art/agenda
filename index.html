@@ -1,125 +1,288 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="Agenda" />
-  <meta name="theme-color" content="#0C0C0C" />
-  <title>Agenda Pessoal</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon.png" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { min-height: 100%; }
-    body { background: #0C0C0C; color: #F0F0F0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
-    input, select, button { font-family: inherit; }
-    input[type=text], input[type=time], input[type=date], select { background: #272727; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #F0F0F0; padding: 8px 12px; font-size: 14px; width: 100%; outline: none; -webkit-appearance: none; }
-    select { appearance: none; } select option { background: #1E1E1E; }
-    * { -webkit-tap-highlight-color: transparent; } ::-webkit-scrollbar { display: none; }
-    #root { padding-bottom: env(safe-area-inset-bottom); }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="Agenda"/>
+<meta name="theme-color" content="#0C0C0C"/>
+<title>Agenda Pessoal</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:#0C0C0C}
+body{color:#F0F0F0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+input,select,button{font-family:inherit}
+input,select{background:#272727;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#F0F0F0;padding:8px 12px;font-size:14px;width:100%;outline:none;-webkit-appearance:none}
+select{appearance:none}
+select option{background:#1E1E1E}
+*{-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{display:none}
+#root{padding-bottom:env(safe-area-inset-bottom)}
+</style>
 </head>
 <body>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></scr${'ipt>'}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></scr${'ipt>'}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></scr${'ipt>'}
 <script>
-  window.storage = { get: async k => { const v = localStorage.getItem(k); return v !== null ? { value: v } : null; }, set: async (k, v) => { localStorage.setItem(k, String(v)); return { key: k, value: v }; } };
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
-</script>
+window.storage={get:async k=>{const v=localStorage.getItem(k);return v!==null?{value:v}:null},set:async(k,v)=>{localStorage.setItem(k,String(v));return{key:k,value:v}}};
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</scr${'ipt>'}
 <script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+const{useState,useEffect,useCallback,useRef}=React;
 const BG="#0C0C0C",S0="#161616",S1="#1E1E1E",S2="#272727",BD="rgba(255,255,255,0.07)",BD2="rgba(255,255,255,0.13)",TX="#F0F0F0",MU="#606060",AC="#8479F0",R="18px",RM="12px",RS="8px";
 const PALETTE=["#9B8FFF","#34D399","#FB923C","#FBBF24","#60A5FA","#F472B6","#A3E635","#38BDF8","#C084FC","#94A3B8","#F87171","#2DD4BF"];
-const DAY_NAMES=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const DAY_NAMES=["Dom","Seg","Ter","Qua","Qui","Sex","Sab"];
 const WATER_TIMES=["07:30","09:30","11:30","13:30","15:30","17:30","19:30"];
 const TODAY=()=>new Date().toISOString().slice(0,10);
-const DEFAULT_CATS=[{id:"c1",name:"Pessoal",color:"#9B8FFF"},{id:"c2",name:"Trabalho",color:"#34D399"},{id:"c3",name:"Saúde",color:"#FB923C"},{id:"c4",name:"Casa",color:"#FBBF24"},{id:"c5",name:"Estudo",color:"#60A5FA"},{id:"c6",name:"Alimentação",color:"#F472B6"}];
-const DEFAULT_RECURRING=[{id:"r1",text:"Trabalhar",cat:"Trabalho",prio:"alta",timeStart:"08:15",timeEnd:"17:30",days:[1,2,3,4,5],goesToPending:false},{id:"r2",text:"Lanche",cat:"Alimentação",prio:"normal",timeStart:"09:45",timeEnd:"",days:[1,2,3,4,5],goesToPending:false},{id:"r3",text:"Almoço",cat:"Alimentação",prio:"normal",timeStart:"12:30",timeEnd:"13:00",days:[1,2,3,4,5],goesToPending:false},{id:"r4",text:"Skin-care manhã",cat:"Saúde",prio:"alta",timeStart:"07:15",timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:true},{id:"r5",text:"Skin-care noite",cat:"Saúde",prio:"alta",timeStart:"21:00",timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:true},...WATER_TIMES.map((t,i)=>({id:"rw"+i,text:"Beber água",cat:"Saúde",prio:"normal",timeStart:t,timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:false}))];
-const inp={background:S2,border:"1px solid "+BD,borderRadius:RS,color:TX,padding:"8px 12px",fontSize:14,width:"100%",boxSizing:"border-box",outline:"none",fontFamily:"inherit"};
+const inp={background:S2,border:"1px solid "+BD,borderRadius:RS,color:TX,padding:"8px 12px",fontSize:14,width:"100%",boxSizing:"border-box",outline:"none"};
 const cardS={background:S0,border:"1px solid "+BD,borderRadius:R,padding:"1rem 1.25rem"};
-const Btn=(a,d)=>({padding:"6px 14px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"1px solid "+(d?"rgba(251,146,60,0.25)":a?AC:BD2),fontFamily:"inherit",background:a?AC:d?"rgba(251,146,60,0.08)":"transparent",color:d?"#FB923C":a?TX:MU,fontWeight:a?500:400});
+const Btn=(a,d)=>({padding:"6px 14px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"1px solid "+(d?"rgba(251,146,60,0.25)":a?AC:BD2),background:a?AC:d?"rgba(251,146,60,0.08)":"transparent",color:d?"#FB923C":a?TX:MU,fontWeight:a?500:400});
+const DEFAULT_CATS=[{id:"c1",name:"Pessoal",color:"#9B8FFF"},{id:"c2",name:"Trabalho",color:"#34D399"},{id:"c3",name:"Saude",color:"#FB923C"},{id:"c4",name:"Casa",color:"#FBBF24"},{id:"c5",name:"Estudo",color:"#60A5FA"},{id:"c6",name:"Alimentacao",color:"#F472B6"}];
+const DEFAULT_RECURRING=[{id:"r1",text:"Trabalhar",cat:"Trabalho",prio:"alta",timeStart:"08:15",timeEnd:"17:30",days:[1,2,3,4,5],goesToPending:false},{id:"r2",text:"Lanche",cat:"Alimentacao",prio:"normal",timeStart:"09:45",timeEnd:"",days:[1,2,3,4,5],goesToPending:false},{id:"r3",text:"Almoco",cat:"Alimentacao",prio:"normal",timeStart:"12:30",timeEnd:"13:00",days:[1,2,3,4,5],goesToPending:false},{id:"r4",text:"Skin-care manha",cat:"Saude",prio:"alta",timeStart:"07:15",timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:true},{id:"r5",text:"Skin-care noite",cat:"Saude",prio:"alta",timeStart:"21:00",timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:true},...WATER_TIMES.map((t,i)=>({id:"rw"+i,text:"Beber agua",cat:"Saude",prio:"normal",timeStart:t,timeEnd:"",days:[0,1,2,3,4,5,6],goesToPending:false}))];
 function catColor(cats,name){return cats.find(c=>c.name===name)?.color||"#888";}
 function injectRecurring(tasks,recurring){const today=TODAY(),wd=new Date().getDay();const exist=tasks.filter(t=>t.date===today&&t.recurId).map(t=>t.recurId);const toAdd=recurring.filter(r=>r.days.includes(wd)&&!exist.includes(r.id)).map(r=>({id:r.id+"_"+today,text:r.text,cat:r.cat,prio:r.prio,timeStart:r.timeStart,timeEnd:r.timeEnd,done:false,date:today,recurId:r.id,goesToPending:r.goesToPending}));return toAdd.length?[...tasks,...toAdd]:tasks;}
 function checkPending(tasks,pending){const yest=new Date();yest.setDate(yest.getDate()-1);const yKey=yest.toISOString().slice(0,10);const existIds=pending.map(p=>p.originalId);const newP=tasks.filter(t=>t.date===yKey&&t.goesToPending&&!t.done&&!existIds.includes(t.id)).map(t=>({...t,id:"p_"+t.id,originalId:t.id,pendingFrom:yKey}));return [...pending,...newP];}
 function getStreak(h){let s=0;const d=new Date();d.setHours(0,0,0,0);for(let i=0;i<30;i++){const k=d.toISOString().slice(0,10),e=h[k];if(e&&e.total>0&&e.done/e.total>=0.5)s++;else if(k!==TODAY())break;d.setDate(d.getDate()-1);}return s;}
-function getLast7(h){const d=new Date();d.setHours(0,0,0,0);return Array.from({length:7},(_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()-(6-i));const k=dd.toISOString().slice(0,10),e=h[k],pct=e&&e.total>0?Math.round(e.done/e.total*100):0;return {k,label:dd.toLocaleDateString("pt-PT",{weekday:"short"}).replace(".",""),pct,isToday:k===TODAY()};});}
-function Toggle({on,onChange}){return React.createElement("button",{onClick:onChange,style:{width:42,height:24,borderRadius:99,border:"none",cursor:"pointer",background:on?AC:S2,position:"relative",flexShrink:0}},React.createElement("div",{style:{width:18,height:18,borderRadius:"50%",background:on?TX:"rgba(255,255,255,0.25)",position:"absolute",top:3,left:on?21:3,transition:"left .2s"}}));}
-function DayPicker({days,onChange}){return React.createElement("div",{style:{display:"flex",gap:4,flexWrap:"wrap"}},DAY_NAMES.map((d,i)=>React.createElement("button",{key:i,onClick:()=>onChange(days.includes(i)?days.filter(x=>x!==i):[...days,i].sort()),style:{padding:"4px 9px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"1px solid "+(days.includes(i)?AC:BD),fontFamily:"inherit",background:days.includes(i)?AC:"transparent",color:days.includes(i)?TX:MU}},d)));}
-function ColorPicker({value,onChange}){return React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},PALETTE.map(col=>React.createElement("div",{key:col,onClick:()=>onChange(col),style:{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:value===col?"2px solid "+TX:"2px solid transparent"}})));}
-const Pill=({text,color})=>React.createElement("span",{style:{fontSize:11,padding:"2px 8px",borderRadius:99,background:color+"22",color,fontWeight:500}},text);
-function Field({label,children}){return React.createElement("div",{style:{marginBottom:10}},label&&React.createElement("div",{style:{fontSize:11,color:MU,marginBottom:4}},label),children);}
+function getLast7(h){const d=new Date();d.setHours(0,0,0,0);return Array.from({length:7},(_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()-(6-i));const k=dd.toISOString().slice(0,10),e=h[k],pct=e&&e.total>0?Math.round(e.done/e.total*100):0;return{k,label:dd.toLocaleDateString("pt-PT",{weekday:"short"}).replace(".",""),pct,isToday:k===TODAY()};});}
+function Toggle({on,onChange}){return(<button onClick={onChange} style={{width:42,height:24,borderRadius:99,border:"none",cursor:"pointer",background:on?AC:S2,position:"relative",flexShrink:0}}><div style={{width:18,height:18,borderRadius:"50%",background:on?TX:"rgba(255,255,255,0.25)",position:"absolute",top:3,left:on?21:3,transition:"left .2s"}}/></button>);}
+function DayPicker({days,onChange}){return(<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{DAY_NAMES.map((d,i)=><button key={i} onClick={()=>onChange(days.includes(i)?days.filter(x=>x!==i):[...days,i].sort())} style={{padding:"4px 9px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"1px solid "+(days.includes(i)?AC:BD),background:days.includes(i)?AC:"transparent",color:days.includes(i)?TX:MU}}>{d}</button>)}</div>);}
+function ColorPicker({value,onChange}){return(<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{PALETTE.map(col=><div key={col} onClick={()=>onChange(col)} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:value===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>);}
+const Pill=({text,color})=><span style={{fontSize:11,padding:"2px 8px",borderRadius:99,background:color+"22",color,fontWeight:500}}>{text}</span>;
+
 function App(){
-  const [tasks,setTasks]=useState([]);const [recurring,setRecurring]=useState(DEFAULT_RECURRING);const [categories,setCategories]=useState(DEFAULT_CATS);const [profile,setProfile]=useState({name:"",notifWater:true,notifMeals:true,notifSkincare:true});const [history,setHistory]=useState({});const [pending,setPending]=useState([]);const [view,setView]=useState("hoje");const [notifStatus,setNotifStatus]=useState("unknown");const [now,setNow]=useState(new Date());const [loaded,setLoaded]=useState(false);const [editTaskId,setEditTaskId]=useState(null);const [editRecurId,setEditRecurId]=useState(null);const [editCatId,setEditCatId]=useState(null);const [showNewTask,setShowNewTask]=useState(false);const [showNewRecur,setShowNewRecur]=useState(false);const [showNewCat,setShowNewCat]=useState(false);const blankTask=()=>({text:"",cat:categories[0]?.name||"Pessoal",prio:"normal",timeStart:"",timeEnd:"",date:TODAY()});const [taskForm,setTaskForm]=useState(blankTask());const [recurForm,setRecurForm]=useState({text:"",cat:"Trabalho",prio:"normal",timeStart:"09:00",timeEnd:"",days:[1,2,3,4,5],goesToPending:false});const [catForm,setCatForm]=useState({name:"",color:PALETTE[0]});const [editTaskForm,setEditTaskForm]=useState(null);const [editRecurForm,setEditRecurForm]=useState(null);const [editCatForm,setEditCatForm]=useState(null);const timers=useRef([]);
-  useEffect(()=>{const iv=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(iv);},[]);
-  const saveAll=useCallback(async(t,r,c,pr,h,pend)=>{try{await window.storage.set("pwa_tasks",JSON.stringify(t));await window.storage.set("pwa_recur",JSON.stringify(r));await window.storage.set("pwa_cats",JSON.stringify(c));await window.storage.set("pwa_prof",JSON.stringify(pr));await window.storage.set("pwa_hist",JSON.stringify(h));await window.storage.set("pwa_pend",JSON.stringify(pend));}catch(e){}},[]);
-  const calcHist=useCallback((t,h)=>{const today=TODAY(),tt=t.filter(x=>x.date===today);return {...h,[today]:{total:tt.length,done:tt.filter(x=>x.done).length}};},[]);
-  const scheduleNotifs=useCallback((recur,prof)=>{timers.current.forEach(clearTimeout);timers.current=[];if(typeof Notification==="undefined"||Notification.permission!=="granted") return;const n=new Date(),wd=n.getDay();recur.forEach(r=>{if(!r.days.includes(wd)) return;if(r.text.includes("água")&&!prof?.notifWater) return;if((r.text==="Lanche"||r.text==="Almoço")&&!prof?.notifMeals) return;if(r.text.includes("Skin-care")&&!prof?.notifSkincare) return;const [hh,mm]=r.timeStart.split(":").map(Number);const t2=new Date();t2.setHours(hh,mm-5,0,0);const delay=t2-n;if(delay>0) timers.current.push(setTimeout(()=>new Notification("⏰ "+r.text,{body:"Em 5 minutos — "+r.timeStart}),delay));});},[]);
-  useEffect(()=>{(async()=>{try{const keys=["pwa_tasks","pwa_recur","pwa_cats","pwa_prof","pwa_hist","pwa_pend"];const res=await Promise.allSettled(keys.map(k=>window.storage.get(k)));const v=i=>res[i].value?.value?JSON.parse(res[i].value.value):null;const lt=v(0)||[],lr=v(1)||DEFAULT_RECURRING,lc=v(2)||DEFAULT_CATS,lpr=v(3)||{name:"",notifWater:true,notifMeals:true,notifSkincare:true},lh=v(4)||{},lpend=v(5)||[];const inj=injectRecurring(lt,lr),np=checkPending(inj,lpend),nh=calcHist(inj,lh);setTasks(inj);setRecurring(lr);setCategories(lc);setProfile(lpr);setHistory(nh);setPending(np);if(typeof Notification!=="undefined"){setNotifStatus(Notification.permission);if(Notification.permission==="granted")scheduleNotifs(lr,lpr);}if(inj.length!==lt.length||np.length!==lpend.length) saveAll(inj,lr,lc,lpr,nh,np);}catch(e){}setLoaded(true);})();return()=>timers.current.forEach(clearTimeout);},[]);
-  const commit=(nt=tasks,nr=recurring,nc=categories,npr=profile,npend=pending)=>{const nh=calcHist(nt,history);setTasks(nt);setRecurring(nr);setCategories(nc);setProfile(npr);setHistory(nh);setPending(npend);saveAll(nt,nr,nc,npr,nh,npend);};
-  const addTask=()=>{if(!taskForm.text.trim())return;commit([...tasks,{id:Date.now(),...taskForm,text:taskForm.text.trim(),done:false}]);setTaskForm(blankTask());setShowNewTask(false);};
-  const toggleTask=id=>commit(tasks.map(t=>t.id===id?{...t,done:!t.done}:t));
-  const saveEditTask=()=>{if(!editTaskForm?.text?.trim())return;commit(tasks.map(t=>t.id===editTaskId?{...t,...editTaskForm}:t));setEditTaskId(null);setEditTaskForm(null);};
-  const deleteTask=()=>{commit(tasks.filter(t=>t.id!==editTaskId));setEditTaskId(null);setEditTaskForm(null);};
-  const addRecur=()=>{if(!recurForm.text.trim())return;const nr=[...recurring,{id:"r"+Date.now(),...recurForm,text:recurForm.text.trim()}];commit(injectRecurring(tasks,nr),nr);setRecurForm({text:"",cat:"Trabalho",prio:"normal",timeStart:"09:00",timeEnd:"",days:[1,2,3,4,5],goesToPending:false});setShowNewRecur(false);scheduleNotifs(nr,profile);};
-  const saveEditRecur=()=>{if(!editRecurForm?.text?.trim())return;const nr=recurring.map(r=>r.id===editRecurId?{...r,...editRecurForm}:r);const nt=tasks.map(t=>t.recurId===editRecurId?{...t,...editRecurForm,id:t.id,date:t.date,done:t.done,recurId:t.recurId}:t);commit(nt,nr);setEditRecurId(null);setEditRecurForm(null);scheduleNotifs(nr,profile);};
-  const deleteRecur=()=>{commit(tasks.filter(t=>t.recurId!==editRecurId),recurring.filter(r=>r.id!==editRecurId));setEditRecurId(null);setEditRecurForm(null);};
-  const addCat=()=>{if(!catForm.name.trim())return;const nc=[...categories,{id:"c"+Date.now(),name:catForm.name.trim(),color:catForm.color}];setCategories(nc);commit(tasks,recurring,nc);setCatForm({name:"",color:PALETTE[0]});setShowNewCat(false);};
-  const saveEditCat=()=>{const old=categories.find(c=>c.id===editCatId);const nc=categories.map(c=>c.id===editCatId?{...c,...editCatForm}:c);commit(tasks.map(t=>t.cat===old.name?{...t,cat:editCatForm.name}:t),recurring.map(r=>r.cat===old.name?{...r,cat:editCatForm.name}:r),nc);setEditCatId(null);setEditCatForm(null);};
-  const deleteCat=()=>{commit(tasks,recurring,categories.filter(c=>c.id!==editCatId));setEditCatId(null);setEditCatForm(null);};
-  const saveProfile=(np)=>{setProfile(np);saveAll(tasks,recurring,categories,np,history,pending);scheduleNotifs(recurring,np);};
-  const togglePend=id=>{const np=pending.map(p=>p.id===id?{...p,done:!p.done}:p);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
-  const dismissPend=id=>{const np=pending.filter(p=>p.id!==id);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
-  const requestNotif=async()=>{if(typeof Notification==="undefined"){setNotifStatus("unsupported");return;}const p=await Notification.requestPermission();setNotifStatus(p);if(p==="granted")scheduleNotifs(recurring,profile);};
-  const nowStr=now.toTimeString().slice(0,5);
-  const isNow=t=>{if(!t.timeStart)return false;const end=t.timeEnd||t.timeStart.slice(0,2)+":"+String(parseInt(t.timeStart.slice(3))+30).padStart(2,"0");return nowStr>=t.timeStart&&nowStr<=end;};
-  const todayTasks=tasks.filter(t=>t.date===TODAY()).sort((a,b)=>{if(a.timeStart&&b.timeStart)return a.timeStart.localeCompare(b.timeStart);if(a.timeStart)return -1;if(b.timeStart)return 1;if(a.prio==="alta"&&b.prio!=="alta")return -1;if(b.prio==="alta"&&a.prio!=="alta")return 1;return 0;});
-  const done=todayTasks.filter(t=>t.done).length,total=todayTasks.length,pct=total>0?Math.round(done/total*100):0;
-  const pendCount=pending.filter(p=>!p.done).length,streak=getStreak(history),last7=getLast7(history);
-  if(!loaded) return React.createElement("div",{style:{minHeight:"100vh",background:BG,display:"flex",alignItems:"center",justifyContent:"center",color:MU,fontSize:14}},"A carregar...");
-  const TABS=[{id:"hoje",label:"Hoje"},{id:"pendentes",label:pendCount>0?"Pendentes ("+pendCount+")":"Pendentes"},{id:"recorrentes",label:"Recorrentes"},{id:"progresso",label:"Progresso"},{id:"definicoes",label:"Definições"}];
-  return React.createElement("div",{style:{minHeight:"100vh",background:BG,color:TX}},
-    React.createElement("div",{style:{maxWidth:520,margin:"0 auto",padding:"1.5rem 1rem 4rem"}},
-      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"1.5rem"}},
-        React.createElement("div",null,React.createElement("h2",{style:{margin:0,fontSize:22,fontWeight:700,color:TX,letterSpacing:"-0.04em"}},profile.name?"Olá, "+profile.name.split(" ")[0]:"A minha agenda"),React.createElement("div",{style:{fontSize:13,color:MU,marginTop:3}},now.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"}))),
-        React.createElement("div",{style:{background:S1,borderRadius:RM,padding:"6px 14px",fontSize:15,fontWeight:600,color:TX,border:"1px solid "+BD}},nowStr)
-      ),
-      React.createElement("div",{style:{display:"flex",gap:2,marginBottom:"1.5rem",background:S0,borderRadius:R,padding:4,border:"1px solid "+BD,overflowX:"auto"}},
-        TABS.map(tab=>React.createElement("button",{key:tab.id,onClick:()=>setView(tab.id),style:{flex:"0 0 auto",padding:"7px 12px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"none",fontFamily:"inherit",background:view===tab.id?S2:"transparent",color:view===tab.id?TX:MU,fontWeight:view===tab.id?500:400,whiteSpace:"nowrap"}},tab.label))
-      ),
-      view==="hoje"&&React.createElement("div",null,
-        !showNewTask?React.createElement("button",{onClick:()=>setShowNewTask(true),style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"12px 16px",background:S0,border:"1px dashed "+BD2,borderRadius:R,cursor:"pointer",marginBottom:"1rem",color:MU,fontSize:14,fontFamily:"inherit"}},React.createElement("span",{style:{width:26,height:26,borderRadius:"50%",background:AC,display:"flex",alignItems:"center",justifyContent:"center",color:TX,fontSize:18,lineHeight:1,flexShrink:0}},"+"),"Adicionar tarefa"):null,
-        total>0&&React.createElement("div",{style:{marginBottom:"1rem"}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12,color:MU,marginBottom:6}},React.createElement("span",null,done+" de "+total+" concluídas"),React.createElement("span",{style:{color:TX,fontWeight:600}},pct+"%")),React.createElement("div",{style:{height:3,background:S2,borderRadius:99}},React.createElement("div",{style:{height:3,width:pct+"%",background:AC,borderRadius:99,transition:"width .4s"}}))),
-        todayTasks.length===0&&!showNewTask&&React.createElement("div",{style:{textAlign:"center",padding:"3rem 0",color:MU,fontSize:14}},"Sem tarefas para hoje."),
-        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
-          todayTasks.map(t=>{const cc=catColor(categories,t.cat),active=isNow(t);return React.createElement("div",{key:t.id,style:{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:active?cc+"12":S0,border:"1px solid "+(active?cc+"30":BD),borderLeft:"3px solid "+cc,borderRadius:R,opacity:t.done?0.4:1}},React.createElement("input",{type:"checkbox",checked:t.done,onChange:()=>toggleTask(t.id),style:{width:17,height:17,cursor:"pointer",accentColor:cc,flexShrink:0}}),React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{style:{fontSize:14,textDecoration:t.done?"line-through":"none",color:TX}},t.text),t.timeStart&&React.createElement("div",{style:{fontSize:11,color:MU,marginTop:2}},t.timeStart+(t.timeEnd?" → "+t.timeEnd:"")+(active?React.createElement("span",{style:{color:cc,marginLeft:6,fontWeight:600}},"● agora"):""))),React.createElement(Pill,{text:t.cat,color:cc}),t.prio==="alta"&&React.createElement("span",{style:{fontSize:11,color:"#FB923C"}},"↑"));})
-        )
-      ),
-      view==="pendentes"&&React.createElement("div",null,
-        React.createElement("div",{style:{fontSize:13,color:MU,marginBottom:"1rem"}},"Tarefas não realizadas que precisam de atenção."),
-        pendCount===0&&React.createElement("div",{style:{textAlign:"center",padding:"3rem 0",color:MU,fontSize:14}},"Sem pendentes. Bom trabalho!"),
-        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},pending.filter(p=>!p.done).map(p=>React.createElement("div",{key:p.id,style:{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"rgba(251,146,60,0.06)",border:"1px solid rgba(251,146,60,0.18)",borderLeft:"3px solid #FB923C",borderRadius:R}},React.createElement("input",{type:"checkbox",checked:false,onChange:()=>togglePend(p.id),style:{width:17,height:17,cursor:"pointer",accentColor:"#FB923C",flexShrink:0}}),React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:14,color:TX}},p.text),React.createElement("div",{style:{fontSize:11,color:MU,marginTop:2}},"Não realizado a "+new Date(p.pendingFrom+"T12:00:00").toLocaleDateString("pt-PT",{weekday:"short",day:"numeric",month:"short"}))),React.createElement("button",{onClick:()=>dismissPend(p.id),style:{background:"none",border:"none",cursor:"pointer",fontSize:12,color:MU,fontFamily:"inherit"}},"Ignorar"))))
-      ),
-      view==="recorrentes"&&React.createElement("div",null,
-        React.createElement("div",{style:{fontSize:13,color:MU,marginBottom:"1rem"}},"Toca numa tarefa para editar."),
-        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6,marginBottom:"1rem"}},recurring.map(r=>{const cc=catColor(categories,r.cat);return React.createElement("div",{key:r.id,style:{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",background:S0,border:"1px solid "+BD,borderLeft:"3px solid "+cc,borderRadius:R,cursor:"pointer"}},React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:14,color:TX,fontWeight:500}},r.text),React.createElement("div",{style:{fontSize:11,color:MU,marginTop:2}},r.timeStart+(r.timeEnd?" → "+r.timeEnd:"")+" · "+(r.days.length===7?"todos os dias":r.days.map(d=>DAY_NAMES[d]).join(", ")))),React.createElement(Pill,{text:r.cat,color:cc}));})),
-        !showNewRecur?React.createElement("button",{onClick:()=>setShowNewRecur(true),style:{width:"100%",padding:"12px",fontSize:14,cursor:"pointer",borderRadius:R,border:"1px dashed "+BD2,background:"transparent",color:MU,fontFamily:"inherit"}},"+Nova tarefa recorrente"):null
-      ),
-      view==="progresso"&&React.createElement("div",null,
-        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:"1.25rem"}},[{l:"Hoje",v:pct+"%",c:AC},{l:"Streak",v:streak+"d",c:"#FB923C"},{l:"Semana",v:Math.round(last7.reduce((a,d)=>a+d.pct,0)/7)+"%",c:"#34D399"}].map(s=>React.createElement("div",{key:s.l,style:{background:S0,border:"1px solid "+BD,borderRadius:R,padding:"14px 12px",textAlign:"center"}},React.createElement("div",{style:{fontSize:11,color:MU,marginBottom:6}},s.l),React.createElement("div",{style:{fontSize:26,fontWeight:700,color:s.c,letterSpacing:"-0.04em"}},s.v)))),
-        React.createElement("div",{style:{...cardS,marginBottom:"1rem"}},React.createElement("div",{style:{fontSize:13,color:MU,marginBottom:"1.25rem"}},"Últimos 7 dias"),React.createElement("div",{style:{display:"flex",gap:8,alignItems:"flex-end",height:100}},last7.map(d=>React.createElement("div",{key:d.k,style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5}},React.createElement("span",{style:{fontSize:9,color:MU}},d.pct>0?d.pct+"%":""),React.createElement("div",{style:{width:"100%",height:68,display:"flex",alignItems:"flex-end"}},React.createElement("div",{style:{width:"100%",height:Math.max(d.pct,4)+"%",background:d.isToday?AC:d.pct>=50?AC+"55":S2,borderRadius:"6px 6px 0 0",transition:"height .3s"}})),Members.createElement("span",{style:{fontSize:10,fontWeight:d.isToday?700:400,color:d.isToday?TX:MU}},d.label)))))
-      ),
-      view==="definicoes"&&React.createElement("div",null,
-        React.createElement("div",{style:{...cardS,marginBottom:"1rem"}},React.createElement("div",{style:{fontSize:13,fontWeight:600,color:TX,marginBottom:"1rem"}},"Perfil"),React.createElement("div",{style:{fontSize:11,color:MU,marginBottom:4}},"O teu nome"),React.createElement("input",{value:profile.name,onChange:e=>saveProfile({...profile,name:e.target.value}),placeholder:"Como te chamas?",style:inp})),
-        React.createElement("div",{style:{...cardS,marginBottom:"1rem"}},React.createElement("div",{style:{fontSize:13,fontWeight:600,color:TX,marginBottom:"1rem"}},"Notificações"),notifStatus==="default"&&React.createElement("button",{onClick:requestNotif,style:{...Btn(true),marginBottom:12,display:"block"}},"Ativar notificações"),[{key:"notifWater",label:"Lembretes de água"},{key:"notifMeals",label:"Refeições"},{key:"notifSkincare",label:"Skin-care"}].map(({key,label},i,arr)=>React.createElement("div",{key,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:i<arr.length-1?"1px solid "+BD:"none"}},React.createElement("span",{style:{fontSize:14,color:TX}},label),React.createElement(Toggle,{on:profile[key],onChange:()=>saveProfile({...profile,[key]:!profile[key]})}))))
-      )
-    )
-  );
+const[tasks,setTasks]=useState([]);
+const[recurring,setRecurring]=useState(DEFAULT_RECURRING);
+const[categories,setCategories]=useState(DEFAULT_CATS);
+const[profile,setProfile]=useState({name:"",notifWater:true,notifMeals:true,notifSkincare:true});
+const[history,setHistory]=useState({});
+const[pending,setPending]=useState([]);
+const[view,setView]=useState("hoje");
+const[notifStatus,setNotifStatus]=useState("unknown");
+const[now,setNow]=useState(new Date());
+const[loaded,setLoaded]=useState(false);
+const[showNewTask,setShowNewTask]=useState(false);
+const[showNewRecur,setShowNewRecur]=useState(false);
+const[showNewCat,setShowNewCat]=useState(false);
+const[editTaskId,setEditTaskId]=useState(null);
+const[editRecurId,setEditRecurId]=useState(null);
+const[editCatId,setEditCatId]=useState(null);
+const blankTask=()=>({text:"",cat:categories[0]?.name||"Pessoal",prio:"normal",timeStart:"",timeEnd:"",date:TODAY()});
+const[taskForm,setTaskForm]=useState(blankTask());
+const[recurForm,setRecurForm]=useState({text:"",cat:"Trabalho",prio:"normal",timeStart:"09:00",timeEnd:"",days:[1,2,3,4,5],goesToPending:false});
+const[catForm,setCatForm]=useState({name:"",color:PALETTE[0]});
+const[editTaskForm,setEditTaskForm]=useState(null);
+const[editRecurForm,setEditRecurForm]=useState(null);
+const[editCatForm,setEditCatForm]=useState(null);
+const timers=useRef([]);
+useEffect(()=>{const iv=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(iv);},[]);
+const saveAll=useCallback(async(t,r,c,pr,h,pend)=>{try{await window.storage.set("pwa_tasks",JSON.stringify(t));await window.storage.set("pwa_recur",JSON.stringify(r));await window.storage.set("pwa_cats",JSON.stringify(c));await window.storage.set("pwa_prof",JSON.stringify(pr));await window.storage.set("pwa_hist",JSON.stringify(h));await window.storage.set("pwa_pend",JSON.stringify(pend));}catch(e){}},[]);
+const calcHist=useCallback((t,h)=>{const today=TODAY(),tt=t.filter(x=>x.date===today);return{...h,[today]:{total:tt.length,done:tt.filter(x=>x.done).length}};},[]);
+const scheduleNotifs=useCallback((recur,prof)=>{timers.current.forEach(clearTimeout);timers.current=[];if(typeof Notification==="undefined"||Notification.permission!=="granted")return;const n=new Date(),wd=n.getDay();recur.forEach(r=>{if(!r.days.includes(wd))return;if(r.text.includes("agua")&&!prof?.notifWater)return;if((r.text==="Lanche"||r.text==="Almoco")&&!prof?.notifMeals)return;if(r.text.includes("Skin-care")&&!prof?.notifSkincare)return;const[hh,mm]=r.timeStart.split(":").map(Number);const t2=new Date();t2.setHours(hh,mm-5,0,0);const delay=t2-n;if(delay>0)timers.current.push(setTimeout(()=>new Notification("Lembrete: "+r.text,{body:"Em 5 minutos - "+r.timeStart}),delay));});},[]);
+useEffect(()=>{(async()=>{try{const keys=["pwa_tasks","pwa_recur","pwa_cats","pwa_prof","pwa_hist","pwa_pend"];const res=await Promise.allSettled(keys.map(k=>window.storage.get(k)));const v=i=>res[i].value?.value?JSON.parse(res[i].value.value):null;const lt=v(0)||[],lr=v(1)||DEFAULT_RECURRING,lc=v(2)||DEFAULT_CATS,lpr=v(3)||{name:"",notifWater:true,notifMeals:true,notifSkincare:true},lh=v(4)||{},lpend=v(5)||[];const inj=injectRecurring(lt,lr),np=checkPending(inj,lpend),nh=calcHist(inj,lh);setTasks(inj);setRecurring(lr);setCategories(lc);setProfile(lpr);setHistory(nh);setPending(np);if(typeof Notification!=="undefined"){setNotifStatus(Notification.permission);if(Notification.permission==="granted")scheduleNotifs(lr,lpr);}if(inj.length!==lt.length||np.length!==lpend.length)saveAll(inj,lr,lc,lpr,nh,np);}catch(e){}setLoaded(true);})();return()=>timers.current.forEach(clearTimeout);},[]);
+const commit=(nt=tasks,nr=recurring,nc=categories,npr=profile,npend=pending)=>{const nh=calcHist(nt,history);setTasks(nt);setHistory(nh);setRecurring(nr);setCategories(nc);setProfile(npr);setPending(npend);saveAll(nt,nr,nc,npr,nh,npend);};
+const addTask=()=>{if(!taskForm.text.trim())return;commit([...tasks,{id:Date.now(),...taskForm,text:taskForm.text.trim(),done:false}]);setTaskForm(blankTask());setShowNewTask(false);};
+const toggleTask=id=>commit(tasks.map(t=>t.id===id?{...t,done:!t.done}:t));
+const saveEditTask=()=>{if(!editTaskForm?.text?.trim())return;commit(tasks.map(t=>t.id===editTaskId?{...t,...editTaskForm}:t));setEditTaskId(null);setEditTaskForm(null);};
+const deleteTask=()=>{commit(tasks.filter(t=>t.id!==editTaskId));setEditTaskId(null);setEditTaskForm(null);};
+const addRecur=()=>{if(!recurForm.text.trim())return;const nr=[...recurring,{id:"r"+Date.now(),...recurForm,text:recurForm.text.trim()}];commit(injectRecurring(tasks,nr),nr);setRecurForm({text:"",cat:"Trabalho",prio:"normal",timeStart:"09:00",timeEnd:"",days:[1,2,3,4,5],goesToPending:false});setShowNewRecur(false);scheduleNotifs(nr,profile);};
+const saveEditRecur=()=>{if(!editRecurForm?.text?.trim())return;const nr=recurring.map(r=>r.id===editRecurId?{...r,...editRecurForm}:r);const nt=tasks.map(t=>t.recurId===editRecurId?{...t,...editRecurForm,id:t.id,date:t.date,done:t.done,recurId:t.recurId}:t);commit(nt,nr);setEditRecurId(null);setEditRecurForm(null);};
+const deleteRecur=()=>{commit(tasks.filter(t=>t.recurId!==editRecurId),recurring.filter(r=>r.id!==editRecurId));setEditRecurId(null);setEditRecurForm(null);};
+const addCat=()=>{if(!catForm.name.trim())return;const nc=[...categories,{id:"c"+Date.now(),name:catForm.name.trim(),color:catForm.color}];commit(tasks,recurring,nc);setCatForm({name:"",color:PALETTE[0]});setShowNewCat(false);};
+const saveEditCat=()=>{const old=categories.find(c=>c.id===editCatId);const nc=categories.map(c=>c.id===editCatId?{...c,...editCatForm}:c);commit(tasks.map(t=>t.cat===old.name?{...t,cat:editCatForm.name}:t),recurring.map(r=>r.cat===old.name?{...r,cat:editCatForm.name}:r),nc);setEditCatId(null);setEditCatForm(null);};
+const deleteCat=()=>{commit(tasks,recurring,categories.filter(c=>c.id!==editCatId));setEditCatId(null);setEditCatForm(null);};
+const saveProfile=np=>{setProfile(np);saveAll(tasks,recurring,categories,np,history,pending);scheduleNotifs(recurring,np);};
+const togglePend=id=>{const np=pending.map(p=>p.id===id?{...p,done:!p.done}:p);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
+const dismissPend=id=>{const np=pending.filter(p=>p.id!==id);setPending(np);saveAll(tasks,recurring,categories,profile,history,np);};
+const requestNotif=async()=>{if(typeof Notification==="undefined")return;const p=await Notification.requestPermission();setNotifStatus(p);if(p==="granted")scheduleNotifs(recurring,profile);};
+const nowStr=now.toTimeString().slice(0,5);
+const isNow=t=>{if(!t.timeStart)return false;const end=t.timeEnd||t.timeStart.slice(0,2)+":"+String(parseInt(t.timeStart.slice(3))+30).padStart(2,"0");return nowStr>=t.timeStart&&nowStr<=end;};
+const todayTasks=tasks.filter(t=>t.date===TODAY()).sort((a,b)=>{if(a.timeStart&&b.timeStart)return a.timeStart.localeCompare(b.timeStart);if(a.timeStart)return -1;if(b.timeStart)return 1;if(a.prio==="alta"&&b.prio!=="alta")return -1;if(b.prio==="alta"&&a.prio!=="alta")return 1;return 0;});
+const done=todayTasks.filter(t=>t.done).length,total=todayTasks.length,pct=total>0?Math.round(done/total*100):0;
+const pendCount=pending.filter(p=>!p.done).length,streak=getStreak(history),last7=getLast7(history);
+if(!loaded)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:MU}}>A carregar...</div>;
+const TABS=[{id:"hoje",label:"Hoje"},{id:"pendentes",label:pendCount>0?"Pendentes ("+pendCount+")":"Pendentes"},{id:"recorrentes",label:"Recorrentes"},{id:"progresso",label:"Progresso"},{id:"definicoes",label:"Definicoes"}];
+return(
+<div style={{minHeight:"100vh",background:BG,color:TX}}>
+<div style={{maxWidth:520,margin:"0 auto",padding:"1.5rem 1rem 4rem"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"1.5rem"}}>
+  <div><h2 style={{margin:0,fontSize:22,fontWeight:700,letterSpacing:"-0.04em"}}>{profile.name?"Ola, "+profile.name.split(" ")[0]:"A minha agenda"}</h2><div style={{fontSize:13,color:MU,marginTop:3}}>{now.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"})}</div></div>
+  <div style={{background:S1,borderRadius:RM,padding:"6px 14px",fontSize:15,fontWeight:600,border:"1px solid "+BD}}>{nowStr}</div>
+</div>
+{notifStatus==="default"&&<div style={{marginBottom:"1rem",padding:"10px 16px",background:"rgba(132,121,240,0.1)",border:"1px solid rgba(132,121,240,0.2)",borderRadius:RM,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}><span style={{fontSize:13}}>Ativar notificacoes</span><button onClick={requestNotif} style={{padding:"4px 12px",fontSize:12,cursor:"pointer",borderRadius:RS,border:"1px solid "+AC,background:"transparent",color:AC}}>Ativar</button></div>}
+<div style={{display:"flex",gap:2,marginBottom:"1.5rem",background:S0,borderRadius:R,padding:4,border:"1px solid "+BD,overflowX:"auto"}}>
+  {TABS.map(tab=><button key={tab.id} onClick={()=>setView(tab.id)} style={{flex:"0 0 auto",padding:"7px 12px",fontSize:12,cursor:"pointer",borderRadius:RM,border:"none",background:view===tab.id?S2:"transparent",color:view===tab.id?TX:MU,fontWeight:view===tab.id?500:400,whiteSpace:"nowrap"}}>{tab.label}</button>)}
+</div>
+{view==="hoje"&&<>
+  {!showNewTask
+    ?<button onClick={()=>setShowNewTask(true)} style={{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"12px 16px",background:S0,border:"1px dashed "+BD2,borderRadius:R,cursor:"pointer",marginBottom:"1rem",color:MU,fontSize:14}}>
+       <span style={{width:26,height:26,borderRadius:"50%",background:AC,display:"flex",alignItems:"center",justifyContent:"center",color:TX,fontSize:18,lineHeight:1,flexShrink:0}}>+</span>Adicionar tarefa
+     </button>
+    :<div style={{...cardS,marginBottom:"1rem",borderLeft:"3px solid "+AC}}>
+       <input value={taskForm.text} onChange={e=>setTaskForm({...taskForm,text:e.target.value})} onKeyDown={e=>e.key==="Enter"&&addTask()} placeholder="Nome da tarefa..." style={{...inp,marginBottom:8}} autoFocus/>
+       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+         <select value={taskForm.cat} onChange={e=>setTaskForm({...taskForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
+         <select value={taskForm.prio} onChange={e=>setTaskForm({...taskForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
+       </div>
+       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+         <input type="time" value={taskForm.timeStart||""} onChange={e=>setTaskForm({...taskForm,timeStart:e.target.value})} style={inp} placeholder="Inicio"/>
+         <input type="time" value={taskForm.timeEnd||""} onChange={e=>setTaskForm({...taskForm,timeEnd:e.target.value})} style={inp} placeholder="Fim"/>
+       </div>
+       <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewTask(false)} style={Btn()}>Cancelar</button><button onClick={addTask} style={Btn(true)}>Guardar</button></div>
+     </div>}
+  {total>0&&<div style={{marginBottom:"1rem"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:MU,marginBottom:6}}><span>{done} de {total} concluidas</span><span style={{color:TX,fontWeight:600}}>{pct}%</span></div><div style={{height:3,background:S2,borderRadius:99}}><div style={{height:3,width:pct+"%",background:AC,borderRadius:99,transition:"width .4s"}}/></div></div>}
+  {todayTasks.length===0&&!showNewTask&&<div style={{textAlign:"center",padding:"3rem 0",color:MU}}>Sem tarefas para hoje.</div>}
+  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+    {todayTasks.map(t=>{const cc=catColor(categories,t.cat),active=isNow(t);
+      if(editTaskId===t.id)return(
+        <div key={t.id} style={{...cardS,borderLeft:"3px solid "+cc}}>
+          <input value={editTaskForm.text} onChange={e=>setEditTaskForm({...editTaskForm,text:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <select value={editTaskForm.cat} onChange={e=>setEditTaskForm({...editTaskForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
+            <select value={editTaskForm.prio} onChange={e=>setEditTaskForm({...editTaskForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <input type="time" value={editTaskForm.timeStart||""} onChange={e=>setEditTaskForm({...editTaskForm,timeStart:e.target.value})} style={inp}/>
+            <input type="time" value={editTaskForm.timeEnd||""} onChange={e=>setEditTaskForm({...editTaskForm,timeEnd:e.target.value})} style={inp}/>
+          </div>
+          <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditTaskId(null);setEditTaskForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditTask} style={Btn(true)}>Guardar</button><button onClick={deleteTask} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
+        </div>);
+      return(<div key={t.id} onClick={()=>{setEditTaskId(t.id);setEditTaskForm({text:t.text,cat:t.cat,prio:t.prio,timeStart:t.timeStart||"",timeEnd:t.timeEnd||"",date:t.date});}} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:active?cc+"12":S0,border:"1px solid "+(active?cc+"30":BD),borderLeft:"3px solid "+cc,borderRadius:R,opacity:t.done?0.4:1}}>
+        <input type="checkbox" checked={t.done} onChange={e=>{e.stopPropagation();toggleTask(t.id);}} style={{width:17,height:17,cursor:"pointer",accentColor:cc,flexShrink:0}}/>
+        <div style={{flex:1,minWidth:0}}><div style={{fontSize:14,textDecoration:t.done?"line-through":"none"}}>{t.text}</div>{t.timeStart&&<div style={{fontSize:11,color:MU,marginTop:2}}>{t.timeStart}{t.timeEnd?" - "+t.timeEnd:""}{active&&<span style={{color:cc,marginLeft:6}}>agora</span>}</div>}</div>
+        <Pill text={t.cat} color={cc}/>{t.prio==="alta"&&<span style={{fontSize:11,color:"#FB923C"}}>up</span>}
+      </div>);
+    })}
+  </div>
+</>}
+{view==="pendentes"&&<>
+  <div style={{fontSize:13,color:MU,marginBottom:"1rem"}}>Tarefas nao realizadas que precisam de atencao.</div>
+  {pendCount===0&&<div style={{textAlign:"center",padding:"3rem 0",color:MU}}>Sem pendentes. Bom trabalho!</div>}
+  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+    {pending.filter(p=>!p.done).map(p=><div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"rgba(251,146,60,0.06)",border:"1px solid rgba(251,146,60,0.18)",borderLeft:"3px solid #FB923C",borderRadius:R}}>
+      <input type="checkbox" checked={false} onChange={()=>togglePend(p.id)} style={{width:17,height:17,cursor:"pointer",accentColor:"#FB923C",flexShrink:0}}/>
+      <div style={{flex:1}}><div style={{fontSize:14}}>{p.text}</div><div style={{fontSize:11,color:MU,marginTop:2}}>Nao realizado a {new Date(p.pendingFrom+"T12:00:00").toLocaleDateString("pt-PT",{weekday:"short",day:"numeric",month:"short"})}</div></div>
+      <button onClick={()=>dismissPend(p.id)} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:MU}}>Ignorar</button>
+    </div>)}
+  </div>
+</>}
+{view==="recorrentes"&&<>
+  <div style={{fontSize:13,color:MU,marginBottom:"1rem"}}>Toca para editar.</div>
+  <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"1rem"}}>
+    {recurring.map(r=>{const cc=catColor(categories,r.cat);
+      if(editRecurId===r.id)return(
+        <div key={r.id} style={{...cardS,borderLeft:"3px solid "+cc}}>
+          <input value={editRecurForm.text} onChange={e=>setEditRecurForm({...editRecurForm,text:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <select value={editRecurForm.cat} onChange={e=>setEditRecurForm({...editRecurForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
+            <select value={editRecurForm.prio} onChange={e=>setEditRecurForm({...editRecurForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <input type="time" value={editRecurForm.timeStart||""} onChange={e=>setEditRecurForm({...editRecurForm,timeStart:e.target.value})} style={inp}/>
+            <input type="time" value={editRecurForm.timeEnd||""} onChange={e=>setEditRecurForm({...editRecurForm,timeEnd:e.target.value})} style={inp}/>
+          </div>
+          <div style={{marginBottom:8,fontSize:11,color:MU}}>Dias da semana</div>
+          <div style={{marginBottom:8}}><DayPicker days={editRecurForm.days} onChange={d=>setEditRecurForm({...editRecurForm,days:d})}/></div>
+          <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:MU,marginBottom:12,cursor:"pointer"}}><input type="checkbox" checked={editRecurForm.goesToPending} onChange={e=>setEditRecurForm({...editRecurForm,goesToPending:e.target.checked})} style={{width:14,height:14,accentColor:AC}}/> Se nao feita, vai para Pendentes</label>
+          <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditRecurId(null);setEditRecurForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditRecur} style={Btn(true)}>Guardar</button><button onClick={deleteRecur} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
+        </div>);
+      return(<div key={r.id} onClick={()=>{setEditRecurId(r.id);setEditRecurForm({text:r.text,cat:r.cat,prio:r.prio,timeStart:r.timeStart,timeEnd:r.timeEnd||"",days:r.days,goesToPending:r.goesToPending});}} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",background:S0,border:"1px solid "+BD,borderLeft:"3px solid "+cc,borderRadius:R,cursor:"pointer"}}>
+        <div style={{flex:1}}><div style={{fontSize:14,fontWeight:500}}>{r.text}</div><div style={{fontSize:11,color:MU,marginTop:2}}>{r.timeStart}{r.timeEnd?" - "+r.timeEnd:""} . {r.days.length===7?"todos os dias":r.days.map(d=>DAY_NAMES[d]).join(", ")}</div></div>
+        <Pill text={r.cat} color={cc}/><span style={{fontSize:12,color:MU}}>edit</span>
+      </div>);
+    })}
+  </div>
+  {!showNewRecur
+    ?<button onClick={()=>setShowNewRecur(true)} style={{width:"100%",padding:"12px",fontSize:14,cursor:"pointer",borderRadius:R,border:"1px dashed "+BD2,background:"transparent",color:MU}}>+ Nova tarefa recorrente</button>
+    :<div style={cardS}>
+       <input value={recurForm.text} onChange={e=>setRecurForm({...recurForm,text:e.target.value})} placeholder="Nome..." style={{...inp,marginBottom:8}} autoFocus/>
+       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+         <select value={recurForm.cat} onChange={e=>setRecurForm({...recurForm,cat:e.target.value})} style={inp}>{categories.map(c=><option key={c.id}>{c.name}</option>)}</select>
+         <select value={recurForm.prio} onChange={e=>setRecurForm({...recurForm,prio:e.target.value})} style={inp}><option value="normal">Normal</option><option value="alta">Alta</option></select>
+       </div>
+       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+         <input type="time" value={recurForm.timeStart} onChange={e=>setRecurForm({...recurForm,timeStart:e.target.value})} style={inp}/>
+         <input type="time" value={recurForm.timeEnd} onChange={e=>setRecurForm({...recurForm,timeEnd:e.target.value})} style={inp}/>
+       </div>
+       <div style={{marginBottom:8}}><DayPicker days={recurForm.days} onChange={d=>setRecurForm({...recurForm,days:d})}/></div>
+       <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:MU,marginBottom:12,cursor:"pointer"}}><input type="checkbox" checked={recurForm.goesToPending} onChange={e=>setRecurForm({...recurForm,goesToPending:e.target.checked})} style={{width:14,height:14,accentColor:AC}}/> Se nao feita, vai para Pendentes</label>
+       <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewRecur(false)} style={Btn()}>Cancelar</button><button onClick={addRecur} style={Btn(true)}>Guardar</button></div>
+     </div>}
+</>}
+{view==="progresso"&&<>
+  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:"1.25rem"}}>
+    {[{l:"Hoje",v:pct+"%",c:AC},{l:"Streak",v:streak+"d",c:"#FB923C"},{l:"Semana",v:Math.round(last7.reduce((a,d)=>a+d.pct,0)/7)+"%",c:"#34D399"}].map(s=>(
+      <div key={s.l} style={{background:S0,border:"1px solid "+BD,borderRadius:R,padding:"14px 12px",textAlign:"center"}}>
+        <div style={{fontSize:11,color:MU,marginBottom:6}}>{s.l}</div>
+        <div style={{fontSize:26,fontWeight:700,color:s.c,letterSpacing:"-0.04em"}}>{s.v}</div>
+      </div>
+    ))}
+  </div>
+  <div style={{...cardS,marginBottom:"1rem"}}>
+    <div style={{fontSize:13,color:MU,marginBottom:"1.25rem"}}>Ultimos 7 dias</div>
+    <div style={{display:"flex",gap:8,alignItems:"flex-end",height:100}}>
+      {last7.map(d=>(
+        <div key={d.k} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+          <span style={{fontSize:9,color:MU}}>{d.pct>0?d.pct+"%":""}</span>
+          <div style={{width:"100%",height:68,display:"flex",alignItems:"flex-end"}}>
+            <div style={{width:"100%",height:Math.max(d.pct,4)+"%",background:d.isToday?AC:d.pct>=50?AC+"55":S2,borderRadius:"6px 6px 0 0",transition:"height .3s"}}/>
+          </div>
+          <span style={{fontSize:10,fontWeight:d.isToday?700:400,color:d.isToday?TX:MU}}>{d.label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  {streak>0&&<div style={{padding:"12px 16px",background:S0,border:"1px solid "+BD,borderRadius:R,fontSize:13,color:MU,textAlign:"center"}}>Sequencia de <span style={{color:"#FB923C",fontWeight:700}}>{streak} {streak===1?"dia":"dias"}</span>. Continua assim!</div>}
+</>}
+{view==="definicoes"&&<>
+  <div style={{...cardS,marginBottom:"1rem"}}>
+    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Perfil</div>
+    <div style={{fontSize:11,color:MU,marginBottom:4}}>O teu nome</div>
+    <input value={profile.name} onChange={e=>saveProfile({...profile,name:e.target.value})} placeholder="Como te chamas?" style={inp}/>
+  </div>
+  <div style={{...cardS,marginBottom:"1rem"}}>
+    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Notificacoes</div>
+    {notifStatus==="denied"&&<div style={{fontSize:12,color:"#FB923C",marginBottom:10}}>Bloqueadas. Ativa nas definicoes do browser.</div>}
+    {notifStatus==="default"&&<button onClick={requestNotif} style={{...Btn(true),marginBottom:12,display:"block"}}>Ativar notificacoes</button>}
+    {[{key:"notifWater",label:"Lembretes de agua (de 2 em 2h)"},{key:"notifMeals",label:"Refeicoes (lanche e almoco)"},{key:"notifSkincare",label:"Skin-care (manha e noite)"}].map(({key,label},i,arr)=>(
+      <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 0",borderBottom:i<arr.length-1?"1px solid "+BD:"none"}}>
+        <span style={{fontSize:14}}>{label}</span>
+        <Toggle on={profile[key]} onChange={()=>saveProfile({...profile,[key]:!profile[key]})}/>
+      </div>
+    ))}
+  </div>
+  <div style={cardS}>
+    <div style={{fontSize:13,fontWeight:600,marginBottom:"1rem"}}>Categorias</div>
+    <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:"0.75rem"}}>
+      {categories.map(c=>{
+        if(editCatId===c.id)return(
+          <div key={c.id} style={{padding:"12px",background:S1,borderRadius:RM,border:"1px solid "+BD}}>
+            <input value={editCatForm.name} onChange={e=>setEditCatForm({...editCatForm,name:e.target.value})} style={{...inp,marginBottom:8}} autoFocus/>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{PALETTE.map(col=><div key={col} onClick={()=>setEditCatForm({...editCatForm,color:col})} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:editCatForm.color===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>
+            <div style={{display:"flex",gap:8}}><button onClick={()=>{setEditCatId(null);setEditCatForm(null);}} style={Btn()}>Cancelar</button><button onClick={saveEditCat} style={Btn(true)}>Guardar</button><button onClick={deleteCat} style={{...Btn(false,true),marginLeft:"auto"}}>Apagar</button></div>
+          </div>);
+        return(<div key={c.id} onClick={()=>{setEditCatId(c.id);setEditCatForm({name:c.name,color:c.color});}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:S1,borderRadius:RM,cursor:"pointer",border:"1px solid "+BD}}>
+          <div style={{width:14,height:14,borderRadius:"50%",background:c.color,flexShrink:0}}/><span style={{flex:1,fontSize:14}}>{c.name}</span><Pill text={c.name} color={c.color}/><span style={{fontSize:12,color:MU}}>edit</span>
+        </div>);
+      })}
+    </div>
+    {!showNewCat
+      ?<button onClick={()=>setShowNewCat(true)} style={{width:"100%",padding:"10px",fontSize:13,cursor:"pointer",borderRadius:RM,border:"1px dashed "+BD2,background:"transparent",color:MU}}>+ Nova categoria</button>
+      :<div style={{paddingTop:12,borderTop:"1px solid "+BD}}>
+         <input value={catForm.name} onChange={e=>setCatForm({...catForm,name:e.target.value})} placeholder="Nome da categoria" style={{...inp,marginBottom:8}} autoFocus/>
+         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{PALETTE.map(col=><div key={col} onClick={()=>setCatForm({...catForm,color:col})} style={{width:24,height:24,borderRadius:"50%",background:col,cursor:"pointer",border:catForm.color===col?"2px solid "+TX:"2px solid transparent"}}/>)}</div>
+         <div style={{display:"flex",gap:8}}><button onClick={()=>setShowNewCat(false)} style={Btn()}>Cancelar</button><button onClick={addCat} style={Btn(true)}>Guardar</button></div>
+       </div>}
+  </div>
+</>}
+</div>
+</div>);
 }
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-</script>
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</scr${'ipt>'}
 </body>
 </html>
